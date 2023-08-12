@@ -1,0 +1,74 @@
+/Punto 1: *ID de los clientes de la Ciudad de Monterrey*/
+SELECT id_cliente FROM cliente WHERE "Barrio o Colonia" = 'Monterrey';
+
+
+/*Punto 2: ID y descripción de los productos que cuesten menos de 15 pesos*/
+SELECT id_producto, descripcion FROM producto WHERE precio < 15;
+
+
+/*Punto 3: ID y nombre de los clientes, cantidad vendida, y descripción del producto, en las ventas en las cuales se vendieron más de 10 unidades*/
+SELECT C.id_cliente AS "ID Cliente", C.nombre AS "Nombre Cliente", VP.cantidad, P.descripcion AS "Descripción Producto"
+FROM cliente C
+JOIN ventas V ON C.id_cliente = V.id_cliente
+JOIN ventas_productos VP ON V.id_venta = VP.id_venta
+JOIN producto P ON VP.id_producto = P.id_producto
+WHERE VP.cantidad > 10;
+
+
+/*Punto 4: ID y nombre de los clientes que no aparecen en la tabla de ventas (Clientes que no han comprado productos*/
+SELECT id_cliente, nombre FROM cliente WHERE id_cliente NOT IN (SELECT DISTINCT id_cliente FROM ventas);
+
+
+/*Punto 5: ID y nombre de los clientes que han comprado todos los productos de la empresa*/
+SELECT C.id_cliente, C.nombre
+FROM cliente C
+JOIN ventas V ON C.id_cliente = V.id_cliente
+WHERE NOT EXISTS (
+    SELECT id_producto FROM producto
+    WHERE NOT EXISTS (
+        SELECT FROM ventas_productos VP
+        WHERE VP.id_producto = producto.id_producto AND VP.id_venta = V.id_venta)
+);
+
+/*Punto 6: ID y nombre de cada cliente y la suma total (suma de cantidad) de los productos que ha comprado*/
+SELECT C.id_cliente, C.nombre, SUM(VP.cantidad) AS "Total productos comprados"
+FROM cliente C
+LEFT JOIN ventas V ON C.id_cliente = V.id_cliente
+LEFT JOIN ventas_productos VP ON V.id_venta = VP.id_venta
+GROUP BY C.id_cliente, C.nombre;
+
+
+/*Punto 7: ID de los productos que no han sido comprados por clientes de Guadalajara*/
+SELECT P.id_producto FROM producto P
+WHERE NOT EXISTS (
+    SELECT 1 FROM ventas_productos VP
+    JOIN ventas V ON VP.id_venta = V.id_venta
+    JOIN cliente C ON V.id_cliente = C.id_cliente
+    WHERE "Barrio o Colonia" = 'Guadalajara' AND VP.id_producto = P.id_producto
+);
+
+
+/*Punto 8: ID de los productos que se han vendido a clientes de Monterrey y que también se han vendido a clientes de Cancún*/
+SELECT DISTINCT VP.id_producto
+FROM ventas_productos VP
+JOIN ventas V ON VP.id_venta = V.id_venta
+JOIN cliente C ON V.id_cliente = C.id_cliente
+WHERE "Barrio o Colonia" = 'Monterrey'
+AND EXISTS (
+    SELECT FROM ventas_productos VP2
+    JOIN ventas V2 ON VP2.id_venta = V2.id_venta
+    JOIN cliente C2 ON V2.id_cliente = C2.id_cliente
+    WHERE "Barrio o Colonia" = 'Cancun' AND VP2.id_producto = VP.id_producto
+);
+
+
+/*Punto 9: Nombre de las ciudades en las que se han vendido todos los productos*/
+SELECT "Barrio o Colonia" FROM Cliente C
+WHERE NOT EXISTS (
+    SELECT id_producto FROM producto
+    WHERE NOT EXISTS (
+        SELECT FROM ventas_productos VP
+        JOIN ventas V ON VP.id_venta = V.id_venta
+        WHERE V.id_cliente = C.id_cliente AND VP.id_producto = Producto.id_producto
+    )
+);
