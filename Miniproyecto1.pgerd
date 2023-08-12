@@ -1,0 +1,11 @@
+/*ID y nombre de los clientes que han comprado todos los productos de la empresa*/
+SELECT C.id_cliente, C.nombre
+FROM cliente C
+JOIN ventas V ON C.id_cliente = V.id_cliente
+WHERE NOT EXISTS (
+    SELECT id_producto FROM producto
+    WHERE NOT EXISTS (
+        SELECT FROM ventas_productos VP
+        WHERE VP.id_producto = producto.id_producto AND VP.id_venta = V.id_venta
+    )
+);

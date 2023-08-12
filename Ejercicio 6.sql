@@ -1,0 +1,1 @@
+/*ID de los productos que no han sido comprados por clientes de Guadalajara*/
